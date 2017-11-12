@@ -222,8 +222,8 @@ c
     case 'n':
       current_int = str_cpy("\n",1);
       break;
-    case 'b':
-      current_int = str_cpy("\b",1);  
+    case 'v':
+      current_int = str_cpy("\v",1);  
       break;
     case 't':
       current_int = str_cpy("\t",1);
