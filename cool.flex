@@ -66,6 +66,16 @@ int null_str_err()
   return -1;
 }
 
+char* special_characters()
+{
+  char *current = &yytext[1];
+  if (*current == "\n")
+  {
+    curr_lineno ++; 
+  }
+  return current;
+}
+
 extern YYSTYPE cool_yylval;
 
 /*
@@ -203,6 +213,35 @@ c
 }
 
 <STRING>
+{BACKSLASH}
+(.|{NEWLINE}) 
+{
+  char* current_str = special_characters();
+  int current_int ;
+  switch (* current_str)
+    case 'n':
+      current_int = str_cpy("\n",1);
+      break;
+    case 'b':
+      current_int = str_cpy("\b",1);  
+      break;
+    case 't':
+      current_int = str_cpy("\t",1);
+      break;
+    case 'f':
+      current_int = str_cpy("\f",1);
+      break;
+    case '\0':
+      current_int = null_str_err();
+      break; 
+    default:
+      current_int = str_cpy(current_str,1);
+      break;
+  if (current_int != 0)
+    return (ERROR);
+}
+
+<STRING>
 <<EOF>>
 {
   yylval.error_msg ="EOF was in string";
@@ -232,6 +271,28 @@ c
 <INITIAL>{DARROW}		 { return (DARROW); }
 <INITIAL>{ASSIGN}                { return (ASSIGN); }
 <INITIAL>{LE}                    { return (LE); }
+
+<INITIAL>{TYPEID}                { yylval.symbol = stringtable.add_string(yytext); return (TYPEID); }
+<INITIAL>{OBJECTID}              { yylval.symbol = stringtable.add_string(yytext); return (OBJECTID); }
+<INITIAL>{DIGIT}+                { yylval.symbol = stringtable.add_string(yytext); return (INT_CONST); }
+<INITIAL>";"                     { return int(';'); }
+<INITIAL>","                     { return int(','); }
+<INITIAL>":"                     { return int(':'); }
+<INITIAL>"{"                     { return int('{'); }
+<INITIAL>"}"                     { return int('}'); }
+<INITIAL>"+"                     { return int('+'); }
+<INITIAL>"-"                     { return int('-'); }
+<INITIAL>"*"                     { return int('*'); }
+<INITIAL>"/"                     { return int('/'); }
+<INITIAL>"<"                     { return int('<'); }
+<INITIAL>"="                     { return int('='); }
+<INITIAL>"~"                     { return int('~'); }
+<INITIAL>"."                     { return int('.'); }
+<INITIAL>"@"                     { return int('@'); }
+<INITIAL>"("                     { return int('('); }
+<INITIAL>")"                     { return int(')'); }
+<INITIAL>.                       { yylval.error_msg = yytext; return (ERROR); }
+
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
