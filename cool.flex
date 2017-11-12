@@ -84,6 +84,7 @@ RIGHTBRACKET	[)]
 OBJECTID	[A-Z][a-zA-Z0-9]*
 TYPEID		[a-z][a-zA-Z0-9]*
 NEWLINE		[\n]
+SPECIALCHARACTER[\r\t\f\v]
 
 LINECOMMENT 	[-][-]
 STARTCOMMENT	[(][*]
@@ -107,12 +108,64 @@ FINISHCOMMENT	[*][)]
 curr_lineno ++;
 }
 
-<COMMENT>
-{DARROW}
+{STARTCOMMENT} 
 {
-return (DARROW);
+  comment++;
+  BEGIN(COMMENT);
 }
 
+{FINISHCOMMENT}
+{
+  comment --;
+  if (comment == 0)
+    BEGIN(INITIAL);
+}
+
+<COMMENT>
+<<EOF>>
+{
+  yylval.error_msg = "EOF was in comment";
+  BEGIN(INITIAL);
+  return(ERROR);
+}
+
+<INITIAL>
+{FINISHCOMMENT}
+{
+  yylval.error_msg = "The forgotten *)"
+  return(ERROR);
+}
+
+<STRING>
+<<EOF>>
+{
+  yylval.error_msg ="EOF was in string";
+  BEGIN(INITIAL);
+  return(ERROR);
+}
+
+<INITIAL>{TRUE}                  { yylval.boolean = true; return (BOOL_CONST); }
+<INITIAL>{FALSE}                 { yylval.boolean = false; return (BOOL_CONST); }
+<INITIAL>{CLASS}                 { return (CLASS); }
+<INITIAL>{ELSE}                  { return (ELSE); }
+<INITIAL>{FI}                    { return (FI); }
+<INITIAL>{IF}                    { return (IF); }
+<INITIAL>{IN}                    { return (IN); }
+<INITIAL>{INHERITS}              { return (INHERITS); }
+<INITIAL>{ISVOID}                { return (ISVOID); }
+<INITIAL>{LET}                   { return (LET); }
+<INITIAL>{LOOP}                  { return (LOOP); }
+<INITIAL>{POOL}                  { return (POOL); }
+<INITIAL>{THEN}                  { return (THEN); }
+<INITIAL>{WHILE}                 { return (WHILE); }
+<INITIAL>{CASE}                  { return (CASE); }
+<INITIAL>{ESAC}                  { return (ESAC); }
+<INITIAL>{NEW}                   { return (NEW); }
+<INITIAL>{OF}                    { return (OF); }
+<INITIAL>{NOT}                   { return (NOT); }
+<INITIAL>{DARROW}		 { return (DARROW); }
+<INITIAL>{ASSIGN}                { return (ASSIGN); }
+<INITIAL>{LE}                    { return (LE); }
  /*
   * Keywords are case-insensitive except for the values true and false,
   * which must begin with a lower-case letter.
