@@ -35,9 +35,36 @@ char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr;
 
 int comment = 0;
+int string_buf_left;
 
 extern int curr_lineno;
 extern int verbose_flag;
+
+bool str_error;
+
+int str_cpy(char *str, unsigned int len)
+{
+  if (len < string_buf_left)
+  {
+    strncpy(string_buf_ptr, str, len);
+    string_buf_ptr += len;
+    string_buf_left -= len;
+    return 0;
+  }
+  else
+  {
+    str_error = true;
+    yylval.error_msg = "String is too long";
+    return -1;
+  }
+}
+
+int null_str_err()
+{
+  yylval.error_msg = "String is null character";
+  str_error = true;
+  return -1;
+}
 
 extern YYSTYPE cool_yylval;
 
@@ -77,6 +104,7 @@ FALSE           f[aA][lL][sS][eE]
 NOT             [nN][oO][tT]
 TRUE            t[rR][uU][eE]
 ASSIGN  	[<][-]
+NOTSTRING	
 BACKSLASH 	[\\]
 STAR 		[*]
 LEFTBRACKET	[(]
@@ -85,7 +113,9 @@ OBJECTID	[A-Z][a-zA-Z0-9]*
 TYPEID		[a-z][a-zA-Z0-9]*
 NEWLINE		[\n]
 SPECIALCHARACTER[\r\t\f\v]
+SLASHNULL 	[\O]
 
+QUOTE		[\]["]
 LINECOMMENT 	[-][-]
 STARTCOMMENT	[(][*]
 FINISHCOMMENT	[*][)]
@@ -105,7 +135,7 @@ FINISHCOMMENT	[*][)]
 <INITIAL,COMMENT>
 {NEWLINE}
 {
-curr_lineno ++;
+  curr_lineno ++;
 }
 
 {STARTCOMMENT} 
@@ -113,12 +143,48 @@ curr_lineno ++;
   comment++;
   BEGIN(COMMENT);
 }
-
+c
 {FINISHCOMMENT}
 {
   comment --;
   if (comment == 0)
     BEGIN(INITIAL);
+}
+
+<INITIAL>
+{QUOTE}
+{
+  BEGIN(STRING)
+  string_buf_ptr = string_buf;
+  string_buf_left = MAX_STR_CONST;
+}
+
+<STRING>
+{SLASHNULL}
+{
+  null_str_err();
+}
+
+<STRING>
+{NEWLINE}
+{
+  BEGIN(INITIAL);
+  curr_lineno ++;
+  if (!str_error)
+  {
+    yylval.erroe_msg = "NONterminated string";
+    return (ERROR);
+  }
+}
+
+<STRING>
+{NOTSTRING}* 
+{
+  int current = str_cpy(yytext, strlen(yytext));
+  if (current != 0) 
+  {
+    return (ERROR);
+  }
 }
 
 <COMMENT>
