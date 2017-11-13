@@ -138,6 +138,7 @@ FINISHCOMMENT	[*][)]
 
 %x COMMENT
 %x STRING
+
 %%
 
  /*
@@ -148,6 +149,7 @@ FINISHCOMMENT	[*][)]
  /*
   *  The multiple-character operators.
   */
+
 <INITIAL,COMMENT>
 {NEWLINE}
 {
@@ -159,69 +161,6 @@ FINISHCOMMENT	[*][)]
   comment++;
   BEGIN(COMMENT);
 }
-
-{FINISHCOMMENT}
-{
-  comment --;
-  if (comment == 0)
-    BEGIN(INITIAL);
-}
-
-<INITIAL>
-{QUOTE}
-{
-  BEGIN(STRING)
-  string_buf_ptr = string_buf;
-  string_buf_left = MAX_STR_CONST;
-}
-
-<COMMENT>
-{BACKSLASH}
-(.|{NEWLINE})
-{
-  special_characters();
-}
-
-<STRING>
-{SLASHNULL}
-{
-  null_str_err();
-  return(ERROR);
-}
-
-<COMMENT>{BACKSLASH};
-
-<STRING>
-{NEWLINE}
-{
-  BEGIN(INITIAL);
-  curr_lineno ++;
-  if (!str_error)
-  {
-    yylval.error_msg = "NONterminated string";
-    return (ERROR);
-  }
-}
-
-<STRING>
-{NOTSTRING}* 
-{
-  int current = str_cpy(yytext, strlen(yytext));
-  if (current != 0) 
-  {
-    return (ERROR);
-  }
-}
-
-<STRING>
-{QUOTE}
-{
-  BEGIN(INITIAL)
-  if (!string_error)
-  {
-    yylval.symbol = stringtable.add_string(string_buf,string_buf_ptr - string_buf);
-    return(STR_CONST);
-  }
 
 <COMMENT>
 <<EOF>>
@@ -235,6 +174,28 @@ FINISHCOMMENT	[*][)]
 <COMMENT>{LEFTBRACKET}/{NOTSTAR};
 <COMMENT>{NOTCOMMENT}*;
 
+<COMMENT>
+{BACKSLASH}
+(.|{NEWLINE})
+{
+  special_characters();
+};
+
+<COMMENT>{BACKSLASH};
+
+<COMMENT>
+{STARTCOMMENT} {
+  comment++;
+}
+
+<COMMENT>
+{FINISHCOMMENT} {
+  comment--;
+  if (comment == 0) {
+    BEGIN(INITIAL);
+  }
+}
+
 <INITIAL>
 {FINISHCOMMENT}
 {
@@ -242,7 +203,55 @@ FINISHCOMMENT	[*][)]
   return(ERROR);
 }
 
-<INITIAL>{LINECOMMENT}{NOTNEWLINE}*;
+<INITIAL>
+{LINECOMMENT}
+{NOTNEWLINE}*;
+
+<INITIAL>
+{QUOTE}
+{
+  BEGIN(STRING)
+  string_buf_ptr = string_buf;
+  string_buf_left = MAX_STR_CONST;
+  string_error = false;
+}
+
+<STRING>
+<<EOF>> 
+{
+  yylval.error_msg = "EOF was in string";
+  BEGIN(INITIAL);
+  return ERROR;
+}
+
+<STRING>
+{NOTSTRING}* 
+{
+  int current = str_cpy(yytext, strlen(yytext));
+  if (current != 0) 
+  {
+    return (ERROR);
+  }
+}
+
+<STRING>
+{SLASHNULL}
+{
+  null_str_err();
+  return(ERROR);
+}
+
+<STRING>
+{NEWLINE}
+{
+  BEGIN(INITIAL);
+  curr_lineno ++;
+  if (!str_error)
+  {
+    yylval.error_msg = "NONterminated string";
+    return (ERROR);
+  }
+}
 
 <STRING>
 {BACKSLASH}
@@ -274,14 +283,18 @@ FINISHCOMMENT	[*][)]
 }
 
 <STRING>
-<<EOF>>
-{
-  yylval.error_msg ="EOF was in string";
-  BEGIN(INITIAL);
-  return(ERROR);
-}
+{BACKSLASH};
 
-<STRING>{BACKSLASH};
+<STRING>
+{QUOTE} 
+{
+  BEGIN(INITIAL);
+  if (!string_error) 
+  {
+    yylval.symbol = stringtable.add_string(string_buf, string_buf_ptr - string_buf);
+    return (STR_CONST);
+  }
+}
 
 {SPECIALCHARACTER};
 
