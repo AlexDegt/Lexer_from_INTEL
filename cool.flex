@@ -33,14 +33,14 @@ extern FILE *fin; /* we read from this file */
 
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr;
-extern YYSTYPE cool_yylval;
-int comment = 0;
-int string_buf_left;
 
 extern int curr_lineno;
-
 extern int verbose_flag;
 
+extern YYSTYPE cool_yylval;
+
+unsigned int comment = 0;
+unsigned int string_buf_left;
 bool str_error;
 
 int str_cpy(char *str, unsigned int len)
@@ -70,7 +70,7 @@ int null_str_err()
 char* special_characters()
 {
   char *current = &yytext[1];
-  if (*current == "\n")
+  if (*current =='\n')
   {
     curr_lineno ++; 
   }
@@ -148,22 +148,19 @@ FINISHCOMMENT	[*][)]
   *  The multiple-character operators.
   */
 
-<INITIAL,COMMENT>{NEWLINE}
-{
+<INITIAL,COMMENT>{NEWLINE} {
   curr_lineno ++;
 }
 
-{STARTCOMMENT} 
-{
+{STARTCOMMENT} {
   comment++;
   BEGIN(COMMENT);
 }
 
-<COMMENT><<EOF>>
-{
+<COMMENT><<EOF>> {
   yylval.error_msg = "EOF was in comment";
   BEGIN(INITIAL);
-  return(ERROR);
+  return (ERROR);
 }
 
 <COMMENT>{STAR}/{NOTRIGHTBRACKET};
@@ -175,60 +172,50 @@ FINISHCOMMENT	[*][)]
 };
 <COMMENT>{BACKSLASH};
 
-<COMMENT>{STARTCOMMENT} 
-{
+<COMMENT>{STARTCOMMENT} {
   comment++;
 }
 
-<COMMENT>{FINISHCOMMENT} 
-{
+<COMMENT>{FINISHCOMMENT} {
   comment--;
   if (comment == 0) {
     BEGIN(INITIAL);
   }
 }
 
-<INITIAL>{FINISHCOMMENT}
-{
+<INITIAL>{FINISHCOMMENT} {
   yylval.error_msg = "The forgotten *)"
   return(ERROR);
 }
 
-<INITIAL>{LINECOMMENT}
-{NOTNEWLINE}*;
+<INITIAL>{LINECOMMENT}{NOTNEWLINE}*;
 
-<INITIAL>{QUOTE}
-{
+<INITIAL>{QUOTE} {
   BEGIN(STRING)
   string_buf_ptr = string_buf;
   string_buf_left = MAX_STR_CONST;
   string_error = false;
 }
 
-<STRING><<EOF>> 
-{
+<STRING><<EOF>> {
   yylval.error_msg = "EOF was in string";
   BEGIN(INITIAL);
-  return ERROR;
+  return (ERROR);
 }
 
-<STRING>{NOTSTRING}* 
-{
+<STRING>{NOTSTRING}* {
   int current = str_cpy(yytext, strlen(yytext));
   if (current != 0) 
   {
     return (ERROR);
   }
 }
-
-<STRING>{NULLCH}
-{
+<STRING>{NULLCH} {
   null_str_err();
   return (ERROR);
 }
 
-<STRING>{NEWLINE}
-{
+<STRING>{NEWLINE}{
   BEGIN(INITIAL);
   curr_lineno ++;
   if (!str_error)
@@ -238,9 +225,7 @@ FINISHCOMMENT	[*][)]
   }
 }
 
-<STRING>{BACKSLASH}
-(.|{NEWLINE}) 
-{
+<STRING>{BACKSLASH}(.|{NEWLINE}) {
   char* current_str = special_characters();
   int current_int ;
   switch (* current_str)
@@ -268,8 +253,7 @@ FINISHCOMMENT	[*][)]
 
 <STRING>{BACKSLASH};
 
-<STRING>{QUOTE} 
-{
+<STRING>{QUOTE} {
   BEGIN(INITIAL);
   if (!string_error) 
   {
