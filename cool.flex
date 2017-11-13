@@ -125,7 +125,7 @@ OBJECTID	[A-Z][a-zA-Z0-9]*
 TYPEID		[a-z][a-zA-Z0-9]*
 NEWLINE		[\n]
 SPECIALCHARACTER[\r\t\f\v]
-SLASHNULL 	[\O]
+NULLCH	 	[\O]
 NOTRIGHTBRACKET [^)]
 NOTLEFTBRACKET	[^(]
 NOTCOMMENT	[[^\n*(\\]
@@ -175,8 +175,7 @@ FINISHCOMMENT	[*][)]
 <COMMENT>{NOTCOMMENT}*;
 
 <COMMENT>
-{BACKSLASH}
-(.|{NEWLINE})
+{BACKSLASH}(.|{NEWLINE})
 {
   special_characters();
 };
@@ -234,11 +233,10 @@ FINISHCOMMENT	[*][)]
   }
 }
 
-<STRING>
-{SLASHNULL}
+<STRING>{NULLCH}
 {
   null_str_err();
-  return(ERROR);
+  return (ERROR);
 }
 
 <STRING>
