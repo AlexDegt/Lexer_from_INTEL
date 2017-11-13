@@ -38,6 +38,7 @@ int comment = 0;
 int string_buf_left;
 
 extern int curr_lineno;
+
 extern int verbose_flag;
 
 bool str_error;
@@ -117,6 +118,7 @@ ASSIGN  	[<][-]
 NOTSTRING	[^\n\0\\\"]
 BACKSLASH 	[\\]
 STAR 		[*]
+NOTSTAR		[^*]
 LEFTBRACKET	[(]
 RIGHTBRACKET	[)]
 OBJECTID	[A-Z][a-zA-Z0-9]*
@@ -124,6 +126,10 @@ TYPEID		[a-z][a-zA-Z0-9]*
 NEWLINE		[\n]
 SPECIALCHARACTER[\r\t\f\v]
 SLASHNULL 	[\O]
+NOTRIGHTBRACKET [^)]
+NOTLEFTBRACKET	[^(]
+NOTCOMMENT	[[^\n*(\\]
+NOTNEWLINE	[^\n]
 
 QUOTE		[\]["]
 LINECOMMENT 	[-][-]
@@ -183,6 +189,8 @@ c
   return(ERROR);
 }
 
+<COMMENT>{BACKSLASH};
+
 <STRING>
 {NEWLINE}
 {
@@ -223,12 +231,18 @@ c
   return(ERROR);
 }
 
+<COMMENT>{STAR}/{NOTRIGHTBRACKET};
+<COMMENT>{LEFTBRACKET}/{NOTSTAR};
+<COMMENT>{NOTCOMMENT}*;
+
 <INITIAL>
 {FINISHCOMMENT}
 {
   yylval.error_msg = "The forgotten *)"
   return(ERROR);
 }
+
+<INITIAL>{LINECOMMENT}{NOTNEWLINE}*;
 
 <STRING>
 {BACKSLASH}
@@ -266,6 +280,10 @@ c
   BEGIN(INITIAL);
   return(ERROR);
 }
+
+<STRING>{BACKSLASH};
+
+{SPECIALCHARACTER};
 
 <INITIAL>{TRUE}                  { yylval.boolean = true; return (BOOL_CONST); }
 <INITIAL>{FALSE}                 { yylval.boolean = false; return (BOOL_CONST); }
