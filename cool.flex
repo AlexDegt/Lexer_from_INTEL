@@ -33,7 +33,7 @@ extern FILE *fin; /* we read from this file */
 
 char string_buf[MAX_STR_CONST]; /* to assemble string constants */
 char *string_buf_ptr;
-
+extern YYSTYPE cool_yylval;
 int comment = 0;
 int string_buf_left;
 
@@ -76,8 +76,6 @@ char* special_characters()
   }
   return current;
 }
-
-extern YYSTYPE cool_yylval;
 
 /*
  *  Add Your own definitions here
@@ -172,11 +170,9 @@ FINISHCOMMENT	[*][)]
 <COMMENT>{LEFTBRACKET}/{NOTSTAR};
 <COMMENT>{NOTCOMMENT}*;
 
-<COMMENT>{BACKSLASH} {NEWLINE} 
-{
+<COMMENT>{BACKSLASH} {
   special_characters();
 };
-
 <COMMENT>{BACKSLASH};
 
 <COMMENT>{STARTCOMMENT} 
