@@ -184,17 +184,17 @@ FINISHCOMMENT	[*][)]
 }
 
 <INITIAL>{FINISHCOMMENT} {
-  yylval.error_msg = "The forgotten *)"
+  yylval.error_msg = "The forgotten *)";
   return(ERROR);
 }
 
 <INITIAL>{LINECOMMENT}{NOTNEWLINE}*;
 
 <INITIAL>{QUOTE} {
-  BEGIN(STRING)
+  BEGIN(STRING);
   string_buf_ptr = string_buf;
   string_buf_left = MAX_STR_CONST;
-  string_error = false;
+  str_error = false;
 }
 
 <STRING><<EOF>> {
@@ -215,8 +215,8 @@ FINISHCOMMENT	[*][)]
   return (ERROR);
 }
 
-<STRING>{NEWLINE}{
-  BEGIN(INITIAL);
+<STRING>{NEWLINE} {
+ BEGIN(INITIAL);
   curr_lineno ++;
   if (!str_error)
   {
@@ -229,11 +229,12 @@ FINISHCOMMENT	[*][)]
   char* current_str = special_characters();
   int current_int ;
   switch (* current_str)
+  {
     case 'n':
       current_int = str_cpy("\n",1);
       break;
-    case 'v':
-      current_int = str_cpy("\v",1);  
+    case 'b':
+      current_int = str_cpy("\b", 1);
       break;
     case 't':
       current_int = str_cpy("\t",1);
@@ -247,6 +248,7 @@ FINISHCOMMENT	[*][)]
     default:
       current_int = str_cpy(current_str,1);
       break;
+  }
   if (current_int != 0)
     return (ERROR);
 }
@@ -255,7 +257,7 @@ FINISHCOMMENT	[*][)]
 
 <STRING>{QUOTE} {
   BEGIN(INITIAL);
-  if (!string_error) 
+  if (!str_error) 
   {
     yylval.symbol = stringtable.add_string(string_buf, string_buf_ptr - string_buf);
     return (STR_CONST);
