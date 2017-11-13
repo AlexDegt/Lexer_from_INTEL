@@ -114,7 +114,7 @@ FALSE           f[aA][lL][sS][eE]
 NOT             [nN][oO][tT]
 TRUE            t[rR][uU][eE]
 ASSIGN  	[<][-]
-NOTSTRING	
+NOTSTRING	[^\n\0\\\"]
 BACKSLASH 	[\\]
 STAR 		[*]
 LEFTBRACKET	[(]
@@ -171,7 +171,7 @@ c
 
 <COMMENT>
 {BACKSLASH}
-(.|NEWLINE)
+(.|{NEWLINE})
 {
   special_characters();
 }
@@ -180,6 +180,7 @@ c
 {SLASHNULL}
 {
   null_str_err();
+  return(ERROR);
 }
 
 <STRING>
