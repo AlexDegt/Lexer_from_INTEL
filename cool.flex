@@ -159,7 +159,7 @@ FINISHCOMMENT	[*][)]
   comment++;
   BEGIN(COMMENT);
 }
-c
+
 {FINISHCOMMENT}
 {
   comment --;
