@@ -150,8 +150,7 @@ FINISHCOMMENT	[*][)]
   *  The multiple-character operators.
   */
 
-<INITIAL,COMMENT>
-{NEWLINE}
+<INITIAL,COMMENT>{NEWLINE}
 {
   curr_lineno ++;
 }
@@ -162,8 +161,7 @@ FINISHCOMMENT	[*][)]
   BEGIN(COMMENT);
 }
 
-<COMMENT>
-<<EOF>>
+<COMMENT><<EOF>>
 {
   yylval.error_msg = "EOF was in comment";
   BEGIN(INITIAL);
@@ -174,40 +172,36 @@ FINISHCOMMENT	[*][)]
 <COMMENT>{LEFTBRACKET}/{NOTSTAR};
 <COMMENT>{NOTCOMMENT}*;
 
-<COMMENT>
-{BACKSLASH}(.|{NEWLINE})
+<COMMENT>{BACKSLASH} {NEWLINE} 
 {
   special_characters();
 };
 
 <COMMENT>{BACKSLASH};
 
-<COMMENT>
-{STARTCOMMENT} {
+<COMMENT>{STARTCOMMENT} 
+{
   comment++;
 }
 
-<COMMENT>
-{FINISHCOMMENT} {
+<COMMENT>{FINISHCOMMENT} 
+{
   comment--;
   if (comment == 0) {
     BEGIN(INITIAL);
   }
 }
 
-<INITIAL>
-{FINISHCOMMENT}
+<INITIAL>{FINISHCOMMENT}
 {
   yylval.error_msg = "The forgotten *)"
   return(ERROR);
 }
 
-<INITIAL>
-{LINECOMMENT}
+<INITIAL>{LINECOMMENT}
 {NOTNEWLINE}*;
 
-<INITIAL>
-{QUOTE}
+<INITIAL>{QUOTE}
 {
   BEGIN(STRING)
   string_buf_ptr = string_buf;
@@ -215,16 +209,14 @@ FINISHCOMMENT	[*][)]
   string_error = false;
 }
 
-<STRING>
-<<EOF>> 
+<STRING><<EOF>> 
 {
   yylval.error_msg = "EOF was in string";
   BEGIN(INITIAL);
   return ERROR;
 }
 
-<STRING>
-{NOTSTRING}* 
+<STRING>{NOTSTRING}* 
 {
   int current = str_cpy(yytext, strlen(yytext));
   if (current != 0) 
@@ -239,8 +231,7 @@ FINISHCOMMENT	[*][)]
   return (ERROR);
 }
 
-<STRING>
-{NEWLINE}
+<STRING>{NEWLINE}
 {
   BEGIN(INITIAL);
   curr_lineno ++;
@@ -251,8 +242,7 @@ FINISHCOMMENT	[*][)]
   }
 }
 
-<STRING>
-{BACKSLASH}
+<STRING>{BACKSLASH}
 (.|{NEWLINE}) 
 {
   char* current_str = special_characters();
@@ -280,11 +270,9 @@ FINISHCOMMENT	[*][)]
     return (ERROR);
 }
 
-<STRING>
-{BACKSLASH};
+<STRING>{BACKSLASH};
 
-<STRING>
-{QUOTE} 
+<STRING>{QUOTE} 
 {
   BEGIN(INITIAL);
   if (!string_error) 
