@@ -169,6 +169,13 @@ c
   string_buf_left = MAX_STR_CONST;
 }
 
+<COMMENT>
+{BACKSLASH}
+(.|NEWLINE)
+{
+  special_characters();
+}
+
 <STRING>
 {SLASHNULL}
 {
@@ -182,7 +189,7 @@ c
   curr_lineno ++;
   if (!str_error)
   {
-    yylval.erroe_msg = "NONterminated string";
+    yylval.error_msg = "NONterminated string";
     return (ERROR);
   }
 }
@@ -196,6 +203,16 @@ c
     return (ERROR);
   }
 }
+
+<STRING>
+{QUOTE}
+{
+  BEGIN(INITIAL)
+  if (!string_error)
+  {
+    yylval.symbol = stringtable.add_string(string_buf,string_buf_ptr - string_buf);
+    return(STR_CONST);
+  }
 
 <COMMENT>
 <<EOF>>
