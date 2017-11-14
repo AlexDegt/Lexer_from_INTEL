@@ -119,14 +119,14 @@ STAR 		[*]
 NOTSTAR		[^*]
 LEFTBRACKET	[(]
 RIGHTBRACKET	[)]
-OBJECTID	[A-Z][_a-zA-Z0-9]*
-TYPEID		[a-z][_a-zA-Z0-9]*
+OBJECTID	[a-z][_a-zA-Z0-9]*
+TYPEID		[A-Z][_a-zA-Z0-9]*
 NEWLINE		[\n]
 SPECIALCHARACTER[ \t\r\f\v]+
 NULLCH	 	[\O]
 NOTRIGHTBRACKET [^)]
 NOTLEFTBRACKET	[^(]
-NOTCOMMENT	[[^\n*(\\]
+NOTCOMMENT	[^\n*(\\]
 NOTNEWLINE	[^\n]
 QUOTE		\"
 LINECOMMENT 	"--"
@@ -162,14 +162,14 @@ FINISHCOMMENT	"*)"
   return (ERROR);
 }
 
-<COMMENT>{STAR}/{NOTRIGHTBRACKET};
-<COMMENT>{LEFTBRACKET}/{NOTSTAR};
-<COMMENT>{NOTCOMMENT}*;
+<COMMENT>{STAR}/{NOTRIGHTBRACKET}	;
+<COMMENT>{LEFTBRACKET}/{NOTSTAR}	;
+<COMMENT>{NOTCOMMENT}*			;
 
-<COMMENT>{BACKSLASH} {
+<COMMENT>{BACKSLASH}(.|{NEWLINE}) {
   special_characters();
 };
-<COMMENT>{BACKSLASH};
+<COMMENT>{BACKSLASH}			;
 
 <COMMENT>{STARTCOMMENT} {
   comment++;
@@ -187,7 +187,7 @@ FINISHCOMMENT	"*)"
   return(ERROR);
 }
 
-<INITIAL>{LINECOMMENT}{NOTNEWLINE}*;
+<INITIAL>{LINECOMMENT}{NOTNEWLINE}* ;
 
 <INITIAL>{QUOTE} {
   BEGIN(STRING);
@@ -223,7 +223,6 @@ FINISHCOMMENT	"*)"
     return (ERROR);
   }
 }
-
 <STRING>{BACKSLASH}(.|{NEWLINE}) {
   char* current_str = special_characters();
   int current_int ;
@@ -251,8 +250,7 @@ FINISHCOMMENT	"*)"
   if (current_int != 0)
     return (ERROR);
 }
-
-<STRING>{BACKSLASH};
+<STRING>{BACKSLASH}			;
 
 <STRING>{QUOTE} {
   BEGIN(INITIAL);
@@ -263,7 +261,7 @@ FINISHCOMMENT	"*)"
   }
 }
 
-{SPECIALCHARACTER};
+{SPECIALCHARACTER}			;
 
 <INITIAL>{TRUE}                  { yylval.boolean = true; return (BOOL_CONST); }
 <INITIAL>{FALSE}                 { yylval.boolean = false; return (BOOL_CONST); }
@@ -323,4 +321,4 @@ FINISHCOMMENT	"*)"
   */
 
 
-%%"
+%%
