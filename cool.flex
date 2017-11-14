@@ -90,8 +90,8 @@ char* special_characters()
  * Define names for regular expressions here.
  */
 
-DARROW          [=][>]
-LE              [<][=]
+DARROW         	=>
+LE              <=
 CLASS           [cC][lL][aA][sS][sS]
 ELSE            [eE][lL][sS][eE]
 FI              [fF][iI]
@@ -112,27 +112,26 @@ DIGIT           [0-9]
 FALSE           f[aA][lL][sS][eE]
 NOT             [nN][oO][tT]
 TRUE            t[rR][uU][eE]
-ASSIGN  	[<][-]
+ASSIGN  	<-
 NOTSTRING	[^\n\0\\\"]
 BACKSLASH 	[\\]
 STAR 		[*]
 NOTSTAR		[^*]
 LEFTBRACKET	[(]
 RIGHTBRACKET	[)]
-OBJECTID	[A-Z][a-zA-Z0-9]*
-TYPEID		[a-z][a-zA-Z0-9]*
+OBJECTID	[A-Z][_a-zA-Z0-9]*
+TYPEID		[a-z][_a-zA-Z0-9]*
 NEWLINE		[\n]
-SPECIALCHARACTER[\r\t\f\v]
+SPECIALCHARACTER[ \t\r\f\v]+
 NULLCH	 	[\O]
 NOTRIGHTBRACKET [^)]
 NOTLEFTBRACKET	[^(]
 NOTCOMMENT	[[^\n*(\\]
 NOTNEWLINE	[^\n]
-
-QUOTE		[\]["]
-LINECOMMENT 	[-][-]
-STARTCOMMENT	[(][*]
-FINISHCOMMENT	[*][)]
+QUOTE		\"
+LINECOMMENT 	"--"
+STARTCOMMENT	"(*"
+FINISHCOMMENT	"*)"
 
 %x COMMENT
 %x STRING
@@ -324,4 +323,4 @@ FINISHCOMMENT	[*][)]
   */
 
 
-%%
+%%"
