@@ -92,25 +92,24 @@ char* special_characters()
 
 DARROW         	=>
 LE              <=
-CLASS           [cC][lL][aA][sS][sS]
-ELSE            [eE][lL][sS][eE]
-FI              [fF][iI]
-IF              [iI][fF]
-IN              [iI][nN]
-INHERITS        [iI][nN][hH][eE][rR][iI][tT][sS]
-LET             [lL][eE][tT]
-LOOP            [lL][oO][oO][pP]
-POOL            [pP][oO][oO][lL]
-THEN            [tT][hH][eE][nN]
-WHILE           [wW][hH][iI][lL][eE]
-CASE            [cC][aA][sS][eE]
-ESAC            [eE][sS][aA][cC]
-OF              [oO][fF]
-NEW             [nN][eE][wW]
-ISVOID          [iI][sS][vV][oO][iI][dD]
+CLASS           (?i:class)
+ELSE            (?i:else)
+FI              (?i:fi)
+IF              (?i:if)
+IN              (?i:in)
+INHERITS        (?i:inherits)
+LET         	(?i:let)
+LOOP        	(?i:loop)
+POOL        	(?i:pool)
+THEN        	(?i:then)
+CASE            (?i:case)
+ESAC            (?i:esac)
+OF              (?i:of)
+NEW             (?i:new)
+ISVOID          (?i:isvoid)
 DIGIT           [0-9]
 FALSE           f[aA][lL][sS][eE]
-NOT             [nN][oO][tT]
+NOT             (?i:not)
 TRUE            t[rR][uU][eE]
 ASSIGN  	<-
 NOTSTRING	[^\n\0\\\"]
@@ -151,16 +150,16 @@ FINISHCOMMENT	"*)"
   curr_lineno ++;
 }
 
-{STARTCOMMENT} {
-  comment++;
-  BEGIN(COMMENT);
-}
+{STARTCOMMENT} { 
+		comment++;
+  		BEGIN(COMMENT);
+				}
 
 <COMMENT><<EOF>> {
-  yylval.error_msg = "EOF was in comment";
-  BEGIN(INITIAL);
-  return (ERROR);
-}
+  		 yylval.error_msg = "EOF was in comment";
+  	         BEGIN(INITIAL);
+  		 return (ERROR);
+				}
 
 <COMMENT>{STAR}/{NOTRIGHTBRACKET}	;
 <COMMENT>{LEFTBRACKET}/{NOTSTAR}	;
@@ -172,94 +171,97 @@ FINISHCOMMENT	"*)"
 <COMMENT>{BACKSLASH}			;
 
 <COMMENT>{STARTCOMMENT} {
-  comment++;
-}
+  			comment++;
+			         }
 
 <COMMENT>{FINISHCOMMENT} {
-  comment--;
-  if (comment == 0) {
-    BEGIN(INITIAL);
-  }
-}
+  			 comment--;
+  			 if (comment == 0) 
+			 {
+    			 	BEGIN(INITIAL);
+  		         }
+				           	}
 
 <INITIAL>{FINISHCOMMENT} {
-  yylval.error_msg = "The forgotten *)";
-  return(ERROR);
-}
+  		         yylval.error_msg = "The forgotten *)";
+  			 return(ERROR);
+			 			}
 
 <INITIAL>{LINECOMMENT}{NOTNEWLINE}* ;
 
 <INITIAL>{QUOTE} {
-  BEGIN(STRING);
-  string_buf_ptr = string_buf;
-  string_buf_left = MAX_STR_CONST;
-  str_error = false;
-}
+  		 BEGIN(STRING);
+  		 string_buf_ptr = string_buf;
+ 	         string_buf_left = MAX_STR_CONST;
+  		 str_error = false;
+				}
 
 <STRING><<EOF>> {
-  yylval.error_msg = "EOF was in string";
-  BEGIN(INITIAL);
-  return (ERROR);
-}
+  		yylval.error_msg = "EOF was in string";
+  		BEGIN(INITIAL);
+  		return (ERROR);
+				}
 
 <STRING>{NOTSTRING}* {
-  int current = str_cpy(yytext, strlen(yytext));
-  if (current != 0) 
-  {
-    return (ERROR);
-  }
-}
+  		     int current = str_cpy(yytext, strlen(yytext));
+  		     if (current != 0) 
+                     {
+    			return (ERROR);
+  		     }
+				}
 <STRING>{NULLCH} {
-  null_str_err();
-  return (ERROR);
-}
+  		 null_str_err();
+  		 return (ERROR);
+				}
 
 <STRING>{NEWLINE} {
- BEGIN(INITIAL);
-  curr_lineno ++;
-  if (!str_error)
-  {
-    yylval.error_msg = "NONterminated string";
-    return (ERROR);
-  }
-}
+ 	          BEGIN(INITIAL);
+  		  curr_lineno ++;
+  		  if (!str_error)
+  	          {
+    	          yylval.error_msg = "NONterminated string";
+    	          return (ERROR);
+  		  }
+				}
 <STRING>{BACKSLASH}(.|{NEWLINE}) {
-  char* current_str = special_characters();
-  int current_int ;
-  switch (* current_str)
-  {
-    case 'n':
-      current_int = str_cpy("\n",1);
-      break;
-    case 'b':
-      current_int = str_cpy("\b", 1);
-      break;
-    case 't':
-      current_int = str_cpy("\t",1);
-      break;
-    case 'f':
-      current_int = str_cpy("\f",1);
-      break;
-    case '\0':
-      current_int = null_str_err();
-      break; 
-    default:
-      current_int = str_cpy(current_str,1);
-      break;
-  }
-  if (current_int != 0)
-    return (ERROR);
-}
+  				 char* current_str = special_characters();
+  				 int current_int ;
+  				 switch (* current_str)
+  				 {
+   				 case 'n':
+     					current_int = str_cpy("\n",1);
+      					break;
+    				 case 'b':
+      					current_int = str_cpy("\b", 1);
+      					break;
+    				 case 't':
+      					current_int = str_cpy("\t",1);
+     				        break;
+    				 case 'f':
+      					current_int = str_cpy("\f",1);
+      					break;
+    				 case '\0':
+     				        current_int = null_str_err();
+      					break; 
+    				 default:
+      					current_int = str_cpy(current_str,1);
+      					break;
+  				}
+  				if (current_int != 0)
+				{
+    					return (ERROR);
+				}
+						}
 <STRING>{BACKSLASH}			;
 
 <STRING>{QUOTE} {
-  BEGIN(INITIAL);
-  if (!str_error) 
-  {
-    yylval.symbol = stringtable.add_string(string_buf, string_buf_ptr - string_buf);
-    return (STR_CONST);
-  }
-}
+  		BEGIN(INITIAL);
+  		if (!str_error) 
+  		{
+    			yylval.symbol = stringtable.add_string(string_buf, string_buf_ptr - string_buf);
+    			return (STR_CONST);
+  		}
+					}
 
 {SPECIALCHARACTER}			;
 
